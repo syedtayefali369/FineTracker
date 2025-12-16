@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI-Powered Finance Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        --bg: #050816;
+        --bg-alt: #0b1120;
+        --card: #020617;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.12);
+        --accent-2: #a855f7;
+        --accent-3: #22c55e;
+        --border-subtle: rgba(148, 163, 184, 0.35);
+        --text: #e5e7eb;
+        --text-soft: #9ca3af;
+        --danger: #f97373;
+        --danger-soft: rgba(248, 113, 113, 0.1);
+        --shadow-soft: 0 18px 60px rgba(15, 23, 42, 0.75);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          "Inter", sans-serif;
+        background: radial-gradient(circle at top, #1d293b 0, #020617 45%);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        padding: 24px;
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 1180px;
+        background: radial-gradient(circle at top left, #020617 0, #020617 35%, #000 100%);
+        border-radius: 30px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow: var(--shadow-soft);
+        padding: 24px 24px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .app-shell::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        background:
+          radial-gradient(circle at 10% 0, rgba(56, 189, 248, 0.12), transparent 55%),
+          radial-gradient(circle at 90% 0, rgba(168, 85, 247, 0.12), transparent 55%),
+          radial-gradient(circle at 50% 100%, rgba(34, 197, 94, 0.12), transparent 55%);
+        opacity: 0.8;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 0, #38bdf8, #0ea5e9 40%, #22c55e 100%);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #e0f2fe;
+        font-size: 18px;
+      }
+
+      .brand-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .brand-title {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        font-size: 20px;
+      }
+
+      .brand-sub {
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 6px 11px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: linear-gradient(120deg, rgba(15, 23, 42, 0.90), rgba(15, 23, 42, 0.3));
+        color: var(--text-soft);
+      }
+
+      .pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--accent-3);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+      }
+
+      .pill-badge {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 10px;
+        background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.3), rgba(15, 23, 42, 0.95));
+        border: 1px solid rgba(56, 189, 248, 0.45);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #e0f2fe;
+        font-weight: 600;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 2.1fr) minmax(0, 2.2fr);
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .column {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .card {
+        background: radial-gradient(circle at 0 -25%, rgba(56, 189, 248, 0.28), transparent 55%), var(--card);
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.85);
+        padding: 16px 16px 14px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .card-title {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+      }
+
+      .card-subtitle {
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-size: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text-soft);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      .grid-three {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stat {
+        padding: 10px 10px 9px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7));
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: var(--text-soft);
+        margin-bottom: 4px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .stat-chip-row {
+        margin-top: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        color: var(--text-soft);
+      }
+
+      .stat-chip {
+        border-radius: 999px;
+        padding: 2px 6px;
+        font-size: 10px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+      }
+
+      .stat-pct {
+        font-weight: 500;
+      }
+
+      .stat-pct.positive {
+        color: #4ade80;
+      }
+
+      .stat-pct.negative {
+        color: #fb7185;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.2fr);
+        gap: 10px;
+        align-items: flex-end;
+      }
+
+      .when-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-soft);
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr) minmax(0, 1.3fr);
+        gap: 8px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border-radius: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text);
+        padding: 8px 9px;
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+      }
+
+      input::placeholder {
+        color: rgba(148, 163, 184, 0.65);
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+        background: rgba(15, 23, 42, 0.98);
+      }
+
+      button {
+        border-radius: 11px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 9px 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #06b6d4, #4f46e5);
+        color: #e0f2fe;
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+        transition: transform 0.08s ease, box-shadow 0.1s ease, filter 0.08s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow: 0 16px 42px rgba(37, 99, 235, 0.8);
+      }
+
+      button:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.55);
+      }
+
+      .btn-secondary {
+        background: rgba(15, 23, 42, 0.9);
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: var(--text-soft);
+        padding-inline: 11px;
+        box-shadow: none;
+      }
+
+      .btn-secondary:hover {
+        filter: none;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.85);
+      }
+
+      .btn-secondary:active {
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.8);
+      }
+
+      .transactions-card {
+        max-height: 260px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .transactions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .transactions-list {
+        flex: 1;
+        overflow: auto;
+        margin-top: 6px;
+        padding-right: 2px;
+      }
+
+      .transactions-list::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .transactions-list::-webkit-scrollbar-thumb {
+        background: rgba(75, 85, 99, 0.8);
+        border-radius: 999px;
+      }
+
+      .transaction-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.9fr) minmax(0, 1.2fr) minmax(0, 1.1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 8px;
+        border-radius: 11px;
+        border: 1px solid rgba(30, 64, 175, 0.35);
+        background: radial-gradient(circle at 0 0, rgba(37, 99, 235, 0.25), rgba(15, 23, 42, 0.92));
+        margin-bottom: 6px;
+      }
+
+      .transaction-row.expense {
+        border-color: rgba(220, 38, 38, 0.45);
+        background: radial-gradient(circle at 0 0, rgba(248, 113, 113, 0.25), rgba(15, 23, 42, 0.92));
+      }
+
+      .transaction-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .transaction-title {
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .transaction-meta {
+        font-size: 11px;
+        color: var(--text-soft);
+      }
+
+      .transaction-amount {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .transaction-amount.income {
+        color: #4ade80;
+      }
+
+      .transaction-amount.expense {
+        color: #fb7185;
+      }
+
+      .transaction-badge {
+        font-size: 11px;
+        border-radius: 999px;
+        padding: 3px 8px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        color: var(--text-soft);
+        justify-self: flex-start;
+      }
+
+      .transaction-actions {
+        display: flex;
+        gap: 4px;
+      }
+
+      .chip {
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(15, 23, 42, 0.95);
+        color: var(--text-soft);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .chip-dot-expense {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #fb7185;
+      }
+
+      .chip-dot-income {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #4ade80;
+      }
+
+      .chip-dot-save {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #38bdf8;
+      }
+
+      .ai-card {
+        background: radial-gradient(circle at 0 -30%, rgba(129, 140, 248, 0.4), transparent 70%), var(--bg-alt);
+      }
+
+      .ai-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ai-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+
+      .ai-avatar {
+        width: 27px;
+        height: 27px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 0 0, #a855f7, #38bdf8 50%, #22c55e 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.6);
+      }
+
+      .ai-stream {
+        margin-top: 9px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 215px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+
+      .ai-message {
+        padding: 8px 9px;
+        border-radius: 12px;
+        font-size: 12px;
+        line-height: 1.4;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      .ai-message strong {
+        color: #e0f2fe;
+      }
+
+      .ai-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .ai-tag {
+        font-size: 10px;
+        border-radius: 999px;
+        padding: 3px 7px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px dashed rgba(148, 163, 184, 0.6);
+        color: var(--text-soft);
+      }
+
+      .chart-legend {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        color: var(--text-soft);
+        margin-bottom: 8px;
+      }
+
+      .legend-items {
+        display: inline-flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+
+      .legend-dot.income {
+        background: linear-gradient(135deg, #22c55e, #4ade80);
+      }
+
+      .legend-dot.expense {
+        background: linear-gradient(135deg, #fb7185, #f97316);
+      }
+
+      .legend-dot.savings {
+        background: linear-gradient(135deg, #38bdf8, #6366f1);
+      }
+
+      .chart-wrapper {
+        position: relative;
+        height: 175px;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: var(--text-soft);
+        margin-top: 2px;
+      }
+
+      .footer span {
+        opacity: 0.85;
+      }
+
+      .footer-cta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .footer-pill {
+        border-radius: 999px;
+        padding: 4px 9px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.9);
+        font-size: 10px;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 12px;
+        }
+
+        .app-shell {
+          border-radius: 22px;
+          padding: 18px 14px 12px;
+        }
+
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .transactions-card {
+          max-height: 220px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .pill-row {
+          justify-content: flex-start;
+        }
+
+        .field-row {
+          grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+          grid-template-rows: auto auto;
+        }
+
+        .field-row select {
+          grid-column: 1 / -1;
+        }
+
+        .transaction-row {
+          grid-template-columns: minmax(0, 1.9fr) minmax(0, 1.2fr);
+          grid-template-rows: auto auto;
+        }
+
+        .transaction-badge {
+          justify-self: flex-end;
+        }
+
+        .transaction-actions {
+          grid-column: 1 / -1;
+          justify-content: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-logo">FT</div>
+          <div class="brand-meta">
+            <div class="brand-title">AI Finance Copilot</div>
+            <div class="brand-sub">Track cash flow, decode habits, and plan smarter.</div>
+          </div>
+        </div>
+        <div>
+          <div class="pill-row">
+            <div class="pill">
+              <span class="pill-dot"></span>
+              Live spending diagnostics
+            </div>
+            <div class="pill">
+              <span class="legend-dot savings"></span>
+              AI savings nudges
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="column">
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Snapshot</div>
+                <div class="card-subtitle">Last 30 days across all categories</div>
+              </div>
+              <div class="badge">
+                <span class="badge-dot"></span>
+                <span id="span-summary-label">Healthy runway</span>
+              </div>
+            </div>
+            <div class="grid-three">
+              <div class="stat">
+                <div class="stat-label">Net Cash Flow</div>
+                <div class="stat-value" id="stat-net">£0.00</div>
+                <div class="stat-chip-row">
+                  <div class="stat-chip">
+                    <span class="chip-dot-save"></span>
+                    <span id="stat-net-summary">Log a few items to begin.</span>
+                  </div>
+                </div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Savings Rate</div>
+                <div class="stat-value" id="stat-savings">0%</div>
+                <div class="stat-chip-row">
+                  <span id="stat-savings-summary">Target 20%+ to build resilience.</span>
+                </div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Discretionary Spend</div>
+                <div class="stat-value" id="stat-discretionary">£0.00</div>
+                <div class="stat-chip-row">
+                  <span class="stat-pct" id="stat-discretionary-pct">0%</span>
+                  <span>of this month</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">New Transaction</div>
+                <div class="card-subtitle">Log income, essentials, and lifestyle spends.</div>
+              </div>
+              <button id="demo-fill-btn" class="btn-secondary" type="button">
+                Try demo data
+              </button>
+            </div>
+            <form id="tx-form">
+              <div class="form-grid">
+                <div class="field-group">
+                  <label for="description-input">Description</label>
+                  <div class="field-row">
+                    <input
+                      id="description-input"
+                      name="description"
+                      type="text"
+                      placeholder="e.g. Salary, groceries, rent, coffee"
+                      autocomplete="off"
+                      required
+                    />
+                    <input
+                      id="amount-input"
+                      name="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Amount"
+                      required
+                    />
+                    <select
+                      id="category-select"
+                      name="category"
+                      title="Transaction category"
+                      required
+                    >
+                      <option value="" disabled selected hidden>Category</option>
+                      <option value="income">Income</option>
+                      <option value="housing">Housing</option>
+                      <option value="groceries">Groceries</option>
+                      <option value="transport">Transport</option>
+                      <option value="subscriptions">Subscriptions</option>
+                      <option value="eating_out">Eating out</option>
+                      <option value="shopping">Shopping</option>
+                      <option value="health">Health & fitness</option>
+                      <option value="debt">Debt repayments</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label for="date-input">When</label>
+                  <div class="when-row">
+                    <input id="date-input" name="date" type="date" required />
+                    <button type="submit">
+                      <span>Log transaction</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <section class="card transactions-card">
+            <div class="transactions-header">
+              <div class="card-title">Activity</div>
+              <div class="chip">
+                <span class="chip-dot-income"></span>
+                <span id="tx-count-label">0 tracked</span>
+              </div>
+            </div>
+            <div class="transactions-list" id="transactions-list"></div>
+          </section>
+        </section>
+
+        <section class="column">
+          <section class="card ai-card">
+            <div class="card-header">
+              <div class="ai-header">
+                <div class="ai-avatar">◎</div>
+                <div>
+                  <div class="card-title">AI Insight Feed</div>
+                  <div class="card-subtitle">
+                    Pattern-aware suggestions tuned to your last 30 days.
+                  </div>
+                </div>
+              </div>
+              <div class="ai-actions">
+                <span class="pill-badge">Local-only · No cloud</span>
+                <button id="refresh-ai-btn" class="btn-secondary" type="button">
+                  Refresh insights
+                </button>
+              </div>
+            </div>
+            <div class="ai-stream" id="ai-stream">
+              <div class="ai-message">
+                <strong>Welcome!</strong> This finance copilot stays entirely in your browser.
+                Start by logging a few real or sample transactions, and I&apos;ll highlight habits,
+                risky trends, and realistic savings levers.
+              </div>
+            </div>
+            <div class="ai-tags" id="ai-tags">
+              <span class="ai-tag">Cash flow stability</span>
+              <span class="ai-tag">Savings rate coaching</span>
+              <span class="ai-tag">Discretionary drift alerts</span>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Spending Map</div>
+                <div class="card-subtitle">Visualise income vs outflows by category.</div>
+              </div>
+              <div class="badge">
+                <span class="badge-dot"></span>
+                30-day window
+              </div>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-items">
+                <span><span class="legend-dot income"></span> Income</span>
+                <span><span class="legend-dot expense"></span> Expenses</span>
+                <span><span class="legend-dot savings"></span> Surplus</span>
+              </div>
+              <button id="clear-btn" class="btn-secondary" type="button">Clear all</button>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chart"></canvas>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Built as an in-browser prototype · data is stored only in this device.</span>
+        <div class="footer-cta">
+          <span class="footer-pill">Tip: Log fixed costs first, then lifestyle spends.</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Lightweight chart helper and AI-like analysis (no external deps) -->
+    <script>
+      (function () {
+        const STORAGE_KEY = "ai-finance-tracker:v1";
+
+        /**
+         * Types:
+         * tx: { id, description, category, amount, date, type }
+         * type is 'income' or 'expense'
+         */
+
+        const form = document.getElementById("tx-form");
+        const descriptionInput = document.getElementById("description-input");
+        const amountInput = document.getElementById("amount-input");
+        const categorySelect = document.getElementById("category-select");
+        const dateInput = document.getElementById("date-input");
+        const txListEl = document.getElementById("transactions-list");
+        const txCountLabel = document.getElementById("tx-count-label");
+        const netEl = document.getElementById("stat-net");
+        const savingsEl = document.getElementById("stat-savings");
+        const discretionaryEl = document.getElementById("stat-discretionary");
+        const discretionaryPctEl = document.getElementById(
+          "stat-discretionary-pct"
+        );
+        const netSummaryEl = document.getElementById("stat-net-summary");
+        const savingsSummaryEl = document.getElementById("stat-savings-summary");
+        const spanSummaryLabel = document.getElementById("span-summary-label");
+        const aiStreamEl = document.getElementById("ai-stream");
+        const aiTagsEl = document.getElementById("ai-tags");
+        const demoFillBtn = document.getElementById("demo-fill-btn");
+        const refreshAiBtn = document.getElementById("refresh-ai-btn");
+        const clearBtn = document.getElementById("clear-btn");
+        const chartCanvas = document.getElementById("chart");
+        const ctx = chartCanvas.getContext("2d");
+
+        let transactions = [];
+
+        function toISODateOnly(date) {
+          const d = new Date(date);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return year + "-" + month + "-" + day;
+        }
+
+        function initDate() {
+          dateInput.value = toISODateOnly(new Date());
+        }
+
+        function saveState() {
+          try {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({
+                transactions,
+              })
+            );
+          } catch (err) {
+            console.error("Failed to persist transactions", err);
+          }
+        }
+
+        function loadState() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed.transactions)) {
+              transactions = parsed.transactions;
+            }
+          } catch (err) {
+            console.warn("Failed to parse previous data, resetting.", err);
+            transactions = [];
+          }
+        }
+
+        function formatCurrency(value) {
+          const n = Number(value) || 0;
+          return "£" + n.toFixed(2);
+        }
+
+        function computeSummary() {
+          const now = new Date();
+          const cutoff = new Date();
+          cutoff.setDate(now.getDate() - 30);
+
+          let income = 0;
+          let essentials = 0;
+          let lifestyle = 0;
+          let debt = 0;
+
+          const ESSENTIAL_CATEGORIES = new Set([
+            "housing",
+            "groceries",
+            "transport",
+            "health",
+            "debt",
+          ]);
+
+          for (const tx of transactions) {
+            const d = new Date(tx.date);
+            if (d < cutoff) continue;
+
+            if (tx.type === "income") {
+              income += tx.amount;
+            } else {
+              if (tx.category === "debt") {
+                debt += tx.amount;
+              }
+
+              if (ESSENTIAL_CATEGORIES.has(tx.category)) {
+                essentials += tx.amount;
+              } else {
+                lifestyle += tx.amount;
+              }
+            }
+          }
+
+          const totalExpenses = essentials + lifestyle + debt;
+          const net = income - totalExpenses;
+          const savingsRate = income > 0 ? Math.max(0, net) / income : 0;
+          const discretionary = lifestyle;
+          const discretionaryPct = totalExpenses > 0 ? (lifestyle / totalExpenses) * 100 : 0;
+
+          return {
+            income,
+            essentials,
+            lifestyle,
+            debt,
+            totalExpenses,
+            net,
+            savingsRate,
+            discretionary,
+            discretionaryPct,
+          };
+        }
+
+        let chartState = null;
+
+        function renderChart() {
+          const rect = chartCanvas.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          chartCanvas.width = rect.width * dpr;
+          chartCanvas.height = rect.height * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+          ctx.clearRect(0, 0, rect.width, rect.height);
+
+          const summary = computeSummary();
+          const income = summary.income;
+          const essentials = summary.essentials;
+          const lifestyle = summary.lifestyle;
+
+          const total = income + essentials + lifestyle || 1;
+          const maxVal = Math.max(income, essentials + lifestyle, 1);
+
+          const padding = { top: 16, bottom: 26, left: 20, right: 20 };
+          const chartWidth = rect.width - padding.left - padding.right;
+          const chartHeight = rect.height - padding.top - padding.bottom;
+
+          // grid lines
+          ctx.strokeStyle = "rgba(148,163,184,0.25)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 5]);
+
+          const steps = 4;
+          for (let i = 0; i <= steps; i++) {
+            const y = padding.top + (chartHeight * i) / steps;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, y);
+            ctx.lineTo(padding.left + chartWidth, y);
+            ctx.stroke();
+          }
+          ctx.setLineDash([]);
+
+          const colWidth = chartWidth / 3;
+          const barWidth = Math.min(44, colWidth * 0.7);
+
+          function drawBar(idx, value, colorFrom, colorTo, label) {
+            const xCenter = padding.left + colWidth * idx + colWidth / 2;
+            const h = (chartHeight * value) / (maxVal || 1);
+            const y = padding.top + (chartHeight - h);
+
+            const r = 8;
+            ctx.save();
+            const gradient = ctx.createLinearGradient(
+              xCenter,
+              y,
+              xCenter,
+              y + h
+            );
+            gradient.addColorStop(0, colorFrom);
+            gradient.addColorStop(1, colorTo);
+            ctx.fillStyle = gradient;
+
+            const x = xCenter - barWidth / 2;
+            const w = barWidth;
+            const bottom = y + h;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y + r);
+            ctx.arcTo(x, y, x + r, y, r);
+            ctx.arcTo(x + w, y, x + w, y + r, r);
+            ctx.lineTo(x + w, bottom);
+            ctx.lineTo(x, bottom);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = "rgba(15,23,42,0.85)";
+            ctx.fillRect(x, bottom - 8, w, 8);
+            ctx.globalAlpha = 1;
+
+            ctx.fillStyle = "rgba(226,232,240,0.85)";
+            ctx.font = "10px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+            ctx.textAlign = "center";
+            const textY = Math.max(padding.top + 12, y - 6);
+            ctx.fillText(formatCurrency(value), xCenter, textY);
+
+            ctx.fillStyle = "rgba(148,163,184,0.9)";
+            ctx.fillText(
+              label,
+              xCenter,
+              padding.top + chartHeight + 13
+            );
+
+            ctx.restore();
+          }
+
+          drawBar(
+            0,
+            income,
+            "#22c55e",
+            "#4ade80",
+            "Income"
+          );
+          drawBar(
+            1,
+            essentials,
+            "#38bdf8",
+            "#6366f1",
+            "Essentials"
+          );
+          drawBar(
+            2,
+            lifestyle,
+            "#fb7185",
+            "#f97316",
+            "Lifestyle"
+          );
+
+          chartState = { income, essentials, lifestyle, total };
+        }
+
+        function renderTransactions() {
+          txListEl.innerHTML = "";
+
+          if (transactions.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "ai-message";
+            empty.textContent =
+              "No activity yet. Log recurring bills, then variable spends like eating out or shopping.";
+            txListEl.appendChild(empty);
+            txCountLabel.textContent = "0 tracked";
+            return;
+          }
+
+          const sorted = [...transactions].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+
+          const formatter = new Intl.DateTimeFormat(undefined, {
+            month: "short",
+            day: "numeric",
+          });
+
+          for (const tx of sorted) {
+            const row = document.createElement("div");
+            row.className =
+              "transaction-row" + (tx.type === "expense" ? " expense" : "");
+
+            const main = document.createElement("div");
+            main.className = "transaction-main";
+
+            const title = document.createElement("div");
+            title.className = "transaction-title";
+            title.textContent = tx.description;
+
+            const meta = document.createElement("div");
+            meta.className = "transaction-meta";
+            const categoryLabel = categoryToLabel(tx.category);
+            meta.textContent = categoryLabel + " · " + formatter.format(new Date(tx.date));
+
+            main.appendChild(title);
+            main.appendChild(meta);
+
+            const amount = document.createElement("div");
+            amount.className =
+              "transaction-amount " +
+              (tx.type === "income" ? "income" : "expense");
+            amount.textContent =
+              (tx.type === "expense" ? "-" : "+") + formatCurrency(tx.amount);
+
+            const badge = document.createElement("div");
+            badge.className = "transaction-badge";
+            badge.textContent = tx.type === "income" ? "Income" : "Expense";
+
+            const actions = document.createElement("div");
+            actions.className = "transaction-actions";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.type = "button";
+            deleteBtn.className = "btn-secondary";
+            deleteBtn.style.paddingInline = "8px";
+            deleteBtn.style.fontSize = "11px";
+            deleteBtn.textContent = "Remove";
+            deleteBtn.addEventListener("click", () => {
+              transactions = transactions.filter((t) => t.id !== tx.id);
+              saveState();
+              renderAll();
+            });
+
+            actions.appendChild(deleteBtn);
+
+            row.appendChild(main);
+            row.appendChild(amount);
+            row.appendChild(badge);
+            row.appendChild(actions);
+
+            txListEl.appendChild(row);
+          }
+
+          txCountLabel.textContent =
+            sorted.length === 1
+              ? "1 transaction"
+              : sorted.length + " transactions";
+        }
+
+        function categoryToLabel(category) {
+          switch (category) {
+            case "income":
+              return "Income";
+            case "housing":
+              return "Housing";
+            case "groceries":
+              return "Groceries";
+            case "transport":
+              return "Transport";
+            case "subscriptions":
+              return "Subscriptions";
+            case "eating_out":
+              return "Eating out";
+            case "shopping":
+              return "Shopping";
+            case "health":
+              return "Health & fitness";
+            case "debt":
+              return "Debt";
+            case "other":
+            default:
+              return "Other";
+          }
+        }
+
+        function renderSummary() {
+          const summary = computeSummary();
+
+          netEl.textContent = formatCurrency(summary.net);
+          savingsEl.textContent = Math.round(summary.savingsRate * 100) + "%";
+          discretionaryEl.textContent = formatCurrency(summary.discretionary);
+          discretionaryPctEl.textContent =
+            Math.round(summary.discretionaryPct) + "%";
+
+          // Net cash flow label
+          if (transactions.length === 0) {
+            netSummaryEl.textContent = "Log a few items to begin.";
+            spanSummaryLabel.textContent = "Healthy runway";
+          } else if (summary.net > 0 && summary.savingsRate >= 0.2) {
+            netSummaryEl.textContent =
+              "You&apos;re running a surplus – consider auto-moving this to savings.";
+            spanSummaryLabel.textContent = "Healthy runway";
+          } else if (summary.net > 0 && summary.savingsRate < 0.2) {
+            netSummaryEl.textContent =
+              "Surplus is modest – nudging 3–5% more into savings would strengthen your buffer.";
+            spanSummaryLabel.textContent = "Could be stronger";
+          } else if (summary.net < 0) {
+            netSummaryEl.textContent =
+              "Spending exceeds income – look for 1–2 categories to cut by 15–20%.";
+            spanSummaryLabel.textContent = "Net negative";
+          } else {
+            netSummaryEl.textContent =
+              "You&apos;re roughly break-even – guard against lifestyle creep.";
+            spanSummaryLabel.textContent = "Tight balance";
+          }
+
+          if (summary.savingsRate >= 0.3) {
+            savingsSummaryEl.textContent =
+              "Excellent savings discipline – you&apos;re on track to build serious runway.";
+          } else if (summary.savingsRate >= 0.2) {
+            savingsSummaryEl.textContent =
+              "Solid savings rate. If sustainable, this compounds well over time.";
+          } else if (summary.savingsRate > 0.05) {
+            savingsSummaryEl.textContent =
+              "You&apos;re saving something. Try earmarking the next 5% of income for goals.";
+          } else if (summary.savingsRate > 0) {
+            savingsSummaryEl.textContent =
+              "Savings are very light – anchoring to even 10% could reduce money stress.";
+          } else {
+            savingsSummaryEl.textContent =
+              "No savings yet in the last 30 days. Start with a tiny, automatic amount.";
+          }
+        }
+
+        function generateAIInsights() {
+          const summary = computeSummary();
+          aiStreamEl.innerHTML = "";
+
+          function pushMessage(html) {
+            const div = document.createElement("div");
+            div.className = "ai-message";
+            div.innerHTML = html;
+            aiStreamEl.appendChild(div);
+          }
+
+          if (transactions.length === 0) {
+            pushMessage(
+              "<strong>Nothing to analyse yet.</strong> Add your salary, rent or mortgage, groceries, and a couple of lifestyle spends. I&apos;ll then estimate your savings rate and where overspend is likely creeping in."
+            );
+            aiTagsEl.innerHTML = "";
+            aiTagsEl.appendChild(tagElement("Start with fixed costs"));
+            aiTagsEl.appendChild(tagElement("Then track lifestyle"));
+            aiTagsEl.appendChild(tagElement("Aim for 20% savings"));
+            return;
+          }
+
+          const {
+            income,
+            essentials,
+            lifestyle,
+            debt,
+            totalExpenses,
+            net,
+            savingsRate,
+          } = summary;
+
+          const lifestyleShare =
+            totalExpenses > 0 ? (lifestyle / totalExpenses) * 100 : 0;
+          const debtShare = totalExpenses > 0 ? (debt / totalExpenses) * 100 : 0;
+
+          // 1. Cash flow synopsis
+          let tone;
+          if (net > 0 && savingsRate >= 0.2) {
+            tone = "You&apos;re running a healthy surplus with a strong savings rate.";
+          } else if (net > 0 && savingsRate < 0.2) {
+            tone =
+              "You do have a surplus, but a relatively small slice is going to savings.";
+          } else if (net < 0) {
+            tone =
+              "You&apos;re in a net negative position over the last month – spending is outpacing income.";
+          } else {
+            tone = "You&apos;re hovering around break-even with little margin.";
+          }
+
+          pushMessage(
+            "<strong>Cash flow overview.</strong> " +
+              tone +
+              " In the last 30 days you logged " +
+              formatCurrency(income) +
+              " of income versus " +
+              formatCurrency(totalExpenses) +
+              " of outflows, leaving " +
+              formatCurrency(net) +
+              " after everything."
+          );
+
+          // 2. Lifestyle & discretionary habits
+          if (lifestyleShare >= 45) {
+            pushMessage(
+              "<strong>Lifestyle is doing the heavy lifting.</strong> Around " +
+                Math.round(lifestyleShare) +
+                "% of spending is going into discretionary categories like eating out, shopping, and other lifestyle items. Pick the 2 biggest ones and trial a 25% cap for the next month – don&apos;t cut them to zero, just intentionally reduce volume."
+            );
+          } else if (lifestyleShare >= 25) {
+            pushMessage(
+              "<strong>Balanced but flexible.</strong> Roughly " +
+                Math.round(lifestyleShare) +
+                "% of recent spend is discretionary. That&apos;s workable – you can likely free up 5–10% of income by tightening just eating out and impulse shopping while keeping quality of life intact."
+            );
+          } else if (lifestyleShare > 0) {
+            pushMessage(
+              "<strong>Lifestyle spend is quite lean.</strong> Only about " +
+                Math.round(lifestyleShare) +
+                "% of expenses are discretionary. If this feels sustainable, you could re-route some of that margin into a &quot;fun&quot; sinking fund to avoid burnout while still hitting goals."
+            );
+          } else {
+            pushMessage(
+              "<strong>No lifestyle categories logged yet.</strong> Once you add things like eating out, shopping, and entertainment, I&apos;ll show you how they stack up versus fixed costs."
+            );
+          }
+
+          // 3. Debt focus
+          if (debtShare >= 25) {
+            pushMessage(
+              "<strong>Debt is a major line item.</strong> About " +
+                Math.round(debtShare) +
+                "% of your outflows are going to debt repayments. Consider whether you can temporarily divert some lifestyle spend into accelerating the highest-interest balance – even a small overpayment every month shortens the payoff timeline."
+            );
+          } else if (debtShare > 0) {
+            pushMessage(
+              "<strong>Debt is present but contained.</strong> Debt repayments make up about " +
+                Math.round(debtShare) +
+                "% of spending. Keeping this below ~15–20% of income protects your flexibility; if it ever creeps much higher, revisit new borrowing and aim to pay down one balance aggressively."
+            );
+          }
+
+          // 4. Concrete nudge
+          const targetSavingsRate = 0.2;
+          if (income > 0 && savingsRate < targetSavingsRate) {
+            const desiredSavings = income * targetSavingsRate;
+            const gap = desiredSavings - Math.max(0, net);
+            if (gap > 0) {
+              pushMessage(
+                "<strong>Actionable nudge.</strong> To reach a 20% savings rate you&apos;d want roughly " +
+                  formatCurrency(desiredSavings) +
+                  " going into savings; you&apos;re short by about " +
+                  formatCurrency(gap) +
+                  ". Easiest experiment: cap eating out and shopping at a combined weekly envelope, and automatically move that freed-up amount on payday."
+              );
+            } else {
+              pushMessage(
+                "<strong>Actionable nudge.</strong> You&apos;re at or above a 20% savings rate. Lock this in by automating a transfer right after income hits, so lifestyle spending adjusts to what&apos;s left rather than the other way round."
+              );
+            }
+          } else if (income > 0 && savingsRate >= targetSavingsRate) {
+            pushMessage(
+              "<strong>You&apos;re doing the important things right.</strong> With a savings rate around " +
+                Math.round(savingsRate * 100) +
+                "%, the biggest win now is consistency. You could optionally raise the target by 2–3% during higher-income months while still keeping room for enjoyment."
+            );
+          }
+
+          // tags
+          aiTagsEl.innerHTML = "";
+          if (net < 0) {
+            aiTagsEl.appendChild(tagElement("Net negative month"));
+            aiTagsEl.appendChild(tagElement("Cut 1–2 big categories"));
+          } else if (net > 0 && savingsRate >= 0.2) {
+            aiTagsEl.appendChild(tagElement("Healthy surplus"));
+            aiTagsEl.appendChild(tagElement("Automate transfers"));
+          } else {
+            aiTagsEl.appendChild(tagElement("Guard against lifestyle creep"));
+            aiTagsEl.appendChild(tagElement("Build buffer"));
+          }
+
+          if (lifestyleShare >= 30) {
+            aiTagsEl.appendChild(tagElement("Lifestyle dominates spend"));
+          }
+          if (debtShare >= 20) {
+            aiTagsEl.appendChild(tagElement("Debt-heavy budget"));
+          }
+          if (aiTagsEl.children.length === 0) {
+            aiTagsEl.appendChild(tagElement("Steady progress"));
+          }
+        }
+
+        function tagElement(text) {
+          const span = document.createElement("span");
+          span.className = "ai-tag";
+          span.textContent = text;
+          return span;
+        }
+
+        function renderAll() {
+          renderTransactions();
+          renderSummary();
+          renderChart();
+        }
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const description = descriptionInput.value.trim();
+          const amountRaw = amountInput.value;
+          const amount = Number(amountRaw);
+          const category = categorySelect.value;
+          const date = dateInput.value || toISODateOnly(new Date());
+
+          if (!description || !amount || !category) {
+            return;
+          }
+
+          const type = category === "income" ? "income" : "expense";
+
+          const tx = {
+            id: "tx_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+            description,
+            category,
+            amount,
+            date,
+            type,
+          };
+
+          transactions.push(tx);
+          saveState();
+
+          descriptionInput.value = "";
+          amountInput.value = "";
+          if (categorySelect.value !== "income") {
+            categorySelect.value = "";
+          }
+
+          renderAll();
+          generateAIInsights();
+        });
+
+        demoFillBtn.addEventListener("click", () => {
+          if (
+            transactions.length > 0 &&
+            !confirm(
+              "This will add sample income and expenses on top of your existing data. Continue?"
+            )
+          ) {
+            return;
+          }
+
+          const today = new Date();
+          function daysAgo(n) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - n);
+            return toISODateOnly(d);
+          }
+
+          const demoTxs = [
+            {
+              description: "Salary",
+              category: "income",
+              amount: 3200,
+              date: daysAgo(2),
+            },
+            {
+              description: "Freelance project",
+              category: "income",
+              amount: 600,
+              date: daysAgo(10),
+            },
+            {
+              description: "Rent",
+              category: "housing",
+              amount: 1200,
+              date: daysAgo(1),
+            },
+            {
+              description: "Groceries – weekly shop",
+              category: "groceries",
+              amount: 85,
+              date: daysAgo(3),
+            },
+            {
+              description: "Groceries – top up",
+              category: "groceries",
+              amount: 32,
+              date: daysAgo(7),
+            },
+            {
+              description: "Gym membership",
+              category: "health",
+              amount: 40,
+              date: daysAgo(5),
+            },
+            {
+              description: "Streaming bundle",
+              category: "subscriptions",
+              amount: 28,
+              date: daysAgo(6),
+            },
+            {
+              description: "Dinner out with friends",
+              category: "eating_out",
+              amount: 64,
+              date: daysAgo(4),
+            },
+            {
+              description: "Coffee & pastries",
+              category: "eating_out",
+              amount: 18,
+              date: daysAgo(0),
+            },
+            {
+              description: "Clothes shopping",
+              category: "shopping",
+              amount: 120,
+              date: daysAgo(8),
+            },
+            {
+              description: "Fuel",
+              category: "transport",
+              amount: 55,
+              date: daysAgo(9),
+            },
+            {
+              description: "Credit card payment",
+              category: "debt",
+              amount: 150,
+              date: daysAgo(11),
+            },
+          ];
+
+          for (const d of demoTxs) {
+            transactions.push({
+              id: "tx_demo_" + Math.random().toString(16).slice(2),
+              description: d.description,
+              category: d.category,
+              amount: d.amount,
+              date: d.date,
+              type: d.category === "income" ? "income" : "expense",
+            });
+          }
+
+          saveState();
+          renderAll();
+          generateAIInsights();
+        });
+
+        refreshAiBtn.addEventListener("click", () => {
+          generateAIInsights();
+        });
+
+        clearBtn.addEventListener("click", () => {
+          if (
+            transactions.length === 0 ||
+            confirm("Clear all transactions and reset the dashboard?")
+          ) {
+            transactions = [];
+            saveState();
+            renderAll();
+            generateAIInsights();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          renderChart();
+        });
+
+        // Bootstrap
+        initDate();
+        loadState();
+        renderAll();
+        generateAIInsights();
+      })();
+    </script>
+  </body>
+</html>
+
+
