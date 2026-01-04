@@ -1,4 +1,6 @@
 # FineTracker
+<img width="524" height="524" alt="ChatGPT Image Dec 16, 2025, 02_31_54 PM" src="https://github.com/user-attachments/assets/392ab806-edee-48d5-87bf-07678e2c1c93" />
+
 
 FineTracker is a simple, lightweight application to track fines, payments, and offender records for organizations such as schools, libraries, or community groups. It provides an easy-to-use interface and a small API for managing fines, generating reports, and recording payments.
 
